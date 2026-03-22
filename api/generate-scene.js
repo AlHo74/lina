@@ -2,21 +2,79 @@ import Anthropic from '@anthropic-ai/sdk'
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// ─── Story phase definitions ──────────────────────────────────────────────────
-//
-// Phases advance automatically based on scene count + Claude's judgment.
-// The empty choices array [] signals the frontend that the story has ended.
-//
-// 1. exploration        — Lina arrives, discovers Zuckerwatten-Land (2-3 scenes)
-// 2. gathering          — Collecting companions one by one (6-8 scenes)
-// 3. march_to_festung   — The party marches to Grills Festung (2-3 scenes)
-// 4. battle_1           — First battle: Lina & party beat Grill (2-3 scenes)
-// 5. battle_2           — Grill gets back up, second fight, Lina wins again (2 scenes)
-// 6. battle_despair     — Grill rises AGAIN, all hope seems lost (1-2 scenes)
-// 7. dario_rumpel_arrive — Dario & Rumpel arrive, explain their plan (1 scene)
-// 8. final_victory      — Together they finally defeat Grill forever (1-2 scenes)
-// 9. homecoming         — Lina steps back through the portal (1-2 scenes, choices: [])
+// ─── Ending scene prompts (5 cinematic scenes, no player choices) ─────────────
+const ENDING_SCENE_PROMPTS = {
+  1: {
+    title: 'Der entscheidende Moment',
+    mood: 'exciting',
+    scene_id: 'ending_decisive',
+    prompt: (name) => `Schreibe die entscheidende finale Szene für ${name}.
+Dario hält Grill den Hammer mit seinem leuchtenden Schwert in Schach.
+Rumpels Kobold-Magie spinnt goldene Fäden um Grill, die ihn verlangsamen.
+${name} sieht die Chance: Grills goldener BBQ-Anhänger – seine Schwachstelle – glänzt in der Sonne.
+Sie rennt, springt, reißt den Anhänger herunter. Ein grelles Licht blendet alle.
+Dann: Stille. Nur das leise Knistern von Zuckerwatte in der Luft.
+Schreibe dies cinematisch und spannend, 4-6 Sätze, Tagebuch-Stil von ${name}.
+Keine Entscheidungen. Mood: exciting. Kein JSON, nur Text.`,
+  },
+  2: {
+    title: 'Grill den Hammer wird zu Zuckerwatte',
+    mood: 'funny',
+    scene_id: 'grill_transformation',
+    prompt: (name) => `Grill den Hammer verwandelt sich langsam in Zuckerwatte – von den Füßen aufwärts!
+Zuerst werden seine Schuhe rosa und flauschig. Dann seine Beine. Er starrt ungläubig runter.
+Er ist zuerst wütend: "Das kann nicht sein! ICH BIN GRILL DEN HAMMER!"
+Dann verwirrt: er riecht an sich selbst... nach Erdbeere?
+Dann irgendwie... damit einverstanden: "Okay. Okay. Das ist eigentlich... recht angenehm."
+Sein allerletzter Satz ist ein lächerlicher BBQ-Rap-Reim (kurz, dumm, lustig).
+Dann: Seine Handlanger starren ihn an. Einer zuckt mit den Schultern. Und beißt ein Stück von seinem ehemaligen Chef ab.
+Schreibe warm, witzig, kindgerecht. 5-7 Sätze, Tagebuch-Stil von ${name}. Kein JSON, nur Text.`,
+  },
+  3: {
+    title: 'Das große Fest',
+    mood: 'happy',
+    scene_id: 'das_grosse_fest',
+    prompt: (name) => `Das große Fest in Zuckerwatten-Land! Alle feiern!
+Zeige jeden dieser Momente kurz aber lebendig:
+- Sophie und Malaika stehen zusammen und planen lautstark ihr nächstes chaotisches Abenteuer
+- Marley rennt bellend im Kreis – pure, grenzenlose Hundefreude
+- Dugu schwebt still und zufrieden über allem und gibt ab und zu ein leises "Miau" von sich
+- Alex will bei der Riesentorte helfen, tritt aber gegen das Tablett – die Torte fällt in hohem Bogen. Alle lachen statt böse zu sein.
+- Karin stimmt ein Siegeslied an. Beschreibe wie es klingt und was es mit den Leuten macht, ohne es auszuschreiben.
+- Annette kommt zu ${name}, sagt nichts, gibt ihr nur einen kurzen wissenden Blick und nickt.
+- Nura Liya drückt ${name} sanft eine kleine, warm leuchtende Kugel in die Hand: "Die Leuchtkugel. Für deinen Weg."
+- Dario und Rumpel winken und verschwinden langsam, als würden sie in die Luft aufgehen, zurück in ihre Welt.
+Schreibe warm, feierlich und voll. Tagebuch-Stil von ${name}. Kein JSON, nur Text.`,
+  },
+  4: {
+    title: 'Emmi und Lina',
+    mood: 'happy',
+    scene_id: 'emmi_und_lina',
+    prompt: (name) => `Ein stiller Moment, nur Emmi und ${name}. Alle anderen sind etwas weiter weg.
+Emmi ist nach außen hin cool – Hände in den Taschen, schaut zur Seite.
+Aber man spürt, dass sie emotional ist. Sie kämpft dagegen an.
+Sie gibt ${name} den Emmi-Sticker: einen kleinen silbernen Punk-Stern.
+Kurze, knappe Dialoge – Emmi hält keine langen Reden. Maximal 2-3 kurze Sätze von ihr.
+Der letzte Satz der Szene: Emmi macht einen Kickflip auf ihrem Skateboard und zeigt mit dem Finger auf das Portal:
+"Los, ${name}. Du schaffst das."
+Schreibe emotional aber nicht kitschig. Tagebuch-Stil von ${name}. Kein JSON, nur Text.`,
+  },
+  5: {
+    title: 'Nach Hause',
+    mood: 'happy',
+    scene_id: 'heimkehr',
+    prompt: (name) => `${name} tritt durch das leuchtende Portal zurück in ihr Zimmer.
+Alles ist genau so wie sie es verlassen hat. Ihr Bett. Ihr Schreibtisch. Die vertrauten Geräusche der echten Welt.
+Sie schaut auf ihre Hand – und da ist er: Emmis Punk-Stern-Sticker. Wirklich. Echt.
+Schreibe den letzten Tagebucheintrag von ${name}:
+Sie weiß, dass es niemand glauben würde.
+Aber sie weiß, dass es wahr war. Jede Sekunde davon.
+Der allerletzte Satz ist offen und magisch – er deutet an, dass das Portal vielleicht eines Tages wieder erscheinen könnte.
+Poetisch, warm, befriedigend. Dies ist das Ende des Buches. Tagebuch-Stil von ${name}. Kein JSON, nur Text.`,
+  },
+}
 
+// ─── Main story system prompt ──────────────────────────────────────────────────
 const SYSTEM_PROMPT = `Du bist der Erzähler eines deutschen Kinderbuch-Abenteuers für 7-jährige Kinder.
 Das Spiel heißt "Lina im Zuckerwatten-Land".
 
@@ -47,75 +105,43 @@ Zuckerwatten-Land ist eine magische Welt, in der alles aus Zuckerwatte besteht �
 
 PHASE 1 – exploration (2-3 Szenen):
 Lina entdeckt das Portal, springt hindurch, staunt über Zuckerwatten-Land.
-Erste Erkundung, erste Begegnungen. Die Welt ist wunderbar aber es droht eine Gefahr.
 → Wechsle zu "gathering" nach 2-3 Szenen.
 
 PHASE 2 – gathering (6-8 Szenen):
 Lina trifft ihre Gefährten und sammelt sie ein. Stelle sie nacheinander vor.
-Reihenfolge (flexibel, je nach Spielerentscheidungen):
-  1. Emmi (Lollipop-Wald – kommt auf Skateboard angefahren)
-  2. Marley (am Zuckerwatte-Strand – läuft bellend auf Lina zu)
-  3. Sophie & Malaika (Marshmallow-Turm – kämpfen sich durch Handlanger)
-  4. Karin (Melodie-See – singt allein auf einem Felsen)
-  5. Nura Liya (Heilkräuter-Garten – heilt gerade ein verletztes Tier)
-  6. Annette & Alex (Rätsel-Brücke – versuchen ein Rätsel zu lösen)
-  7. Dugu (Geister-Wolke – schwebt neugierig herbei)
-Trage neue Gefährten in "new_companions" ein, wenn sie beitreten.
-→ Wechsle zu "march_to_festung" sobald mindestens 5 Gefährten dabei sind.
+Reihenfolge (flexibel): Emmi → Marley → Sophie & Malaika → Karin → Nura Liya → Annette & Alex → Dugu.
+Trage neue Gefährten in "new_companions" ein.
+→ Wechsle zu "march_to_festung" sobald mind. 5 Gefährten dabei sind.
 
 PHASE 3 – march_to_festung (2-3 Szenen):
-Die Gruppe marschiert zusammen zu Grills Festung. Spannungsaufbau.
-Handlanger versuchen sie aufzuhalten, werden aber leicht besiegt (lustig).
-Grills Festung taucht am Horizont auf – dramatisch, aus dunklem Toffee gebaut.
-→ Wechsle zu "battle_1" wenn sie die Festung erreichen.
+Die Gruppe marschiert zu Grills Festung. Handlanger werden lustig besiegt.
+→ Wechsle zu "battle_1" wenn sie ankommen.
 
 PHASE 4 – battle_1 (2-3 Szenen):
-ERSTER KAMPF gegen Grill den Hammer.
-Grill taucht auf, protzt mit seinen BBQ-Tongs. Er ist mächtig aber die Gruppe kämpft tapfer.
-Emmi zaubert, Sophie & Malaika stürmen drauf los, Karin singt Grill in die Knie.
-Lina macht den entscheidenden letzten Zug. GRILL FÄLLT.
-Alle feiern – aber dann...
-→ Wechsle zu "battle_2" wenn Grill fällt.
+ERSTER KAMPF. Grill fällt. Alle feiern. Dann steht er wieder auf...
+→ Wechsle zu "battle_2".
 
 PHASE 5 – battle_2 (2 Szenen):
-GRILL STEHT WIEDER AUF. Er war gar nicht besiegt!
-Er lacht sein böses Lachen und ist noch wütender als zuvor.
-Zweiter Kampf – diesmal noch schwieriger. Nura Liya heilt alle.
-Alex richtet zufällig Chaos an, das Grill kurz ablenkt.
-Lina findet eine Lücke in Grills Verteidigung. GRILL FÄLLT WIEDER.
+GRILL STEHT WIEDER AUF. Zweiter Kampf, schwieriger. Grill fällt nochmal. Dann bewegt er sich wieder...
 → Wechsle zu "battle_despair".
 
 PHASE 6 – battle_despair (1-2 Szenen):
-GRILL STEHT ZUM DRITTEN MAL AUF. Noch mächtiger, noch wütender.
-Die Gruppe ist erschöpft. Emmi's Hut ist kaputt. Marley hat Angst.
-Alles scheint verloren. Choices sollten dramatisch aber hoffnungsvoll sein.
+Grill steht zum DRITTEN MAL auf. Alle erschöpft. Alles scheint verloren.
 → Wechsle zu "dario_rumpel_arrive".
 
 PHASE 7 – dario_rumpel_arrive (1 Szene):
-In dem Moment, wo alles hoffnungslos scheint, erscheinen DARIO und RUMPEL!
-Dario kommt mit seinem leuchtenden Schwert, Rumpel mit funkelnder Kobold-Magie.
-Sie kennen Grills Schwäche: sein goldener BBQ-Anhänger ist sein Kraftquell!
-scene_id muss "dario_rumpel_arrive" sein (triggert Full-Screen-Illustration).
-Keine Wahlmöglichkeiten – die Ankunft ist ein unvermeidlicher Story-Beat.
-choices: [{"id":"a","text":"Los geht's – gemeinsam!"}]
-→ Wechsle zu "final_victory".
+Dario und Rumpel erscheinen! Sie kennen Grills Schwäche: sein goldener BBQ-Anhänger!
+scene_id MUSS "dario_rumpel_arrive" sein.
+choices: [{"id":"a","text":"Los geht's – alle zusammen!"}]
+→ story_phase: "final_victory"
 
 PHASE 8 – final_victory (1-2 Szenen):
-ENDKAMPF – alle zusammen gegen Grill.
-Dario's Schwert zerstört den goldenen Anhänger. Rumpels Magie hält Grill fest.
-Grill verwandelt sich langsam in Zuckerwatte (rosa, flauschig, harmlos).
-Er ist verwirrt aber nicht böse – eher peinlich berührt.
-Die Handlanger laufen davon und stolpern dabei übereinander.
-Zuckerwatten-Land ist gerettet! GROSSES FEST!
-scene_id muss "grill_transformation" sein für die Verwandlungsszene.
-→ Wechsle zu "homecoming" nach dem Sieg.
+Der Sieg zeichnet sich ab. Alle kämpfen. Grill ist geschwächt.
+Endet mit dem letzten großen Moment kurz bevor Lina den Anhänger entreißt.
+→ story_phase: "homecoming" (triggert die cinematic Ending-Sequenz im Frontend)
 
-PHASE 9 – homecoming (1-2 Szenen, dann choices: []):
-Lina verabschiedet sich von allen Gefährten. Tränen und Umarmungen.
-Emmi gibt Lina ihren Punk-Star-Sticker als Erinnerung.
-Lina tritt zurück durch das Portal in ihr Zimmer.
-Die letzte Szene endet mit: "choices": []  ← LEERES ARRAY = Geschichte zu Ende.
-scene_id der letzten Szene: "heimkehr"
+PHASE 9 – homecoming:
+Wird als cinematic Sequenz im Frontend gehandhabt. Keine normalen Szenen mehr.
 
 ═══ AUSGABEFORMAT (immer als JSON, kein Markdown) ═══
 {
@@ -133,13 +159,18 @@ scene_id der letzten Szene: "heimkehr"
   "new_companions": ["Name"]
 }`
 
+// ─── Ending scene system prompt ───────────────────────────────────────────────
+const ENDING_SYSTEM_PROMPT = `Du bist der Erzähler eines deutschen Kinderbuchs für 7-jährige Kinder.
+Du schreibst gerade die finalen Szenen des Abenteuers "Lina im Zuckerwatten-Land".
+Dies sind cinematic Szenen ohne Spielerentscheidungen.
+Schreibe emotional, warm und befriedigend.
+Tagebuch-Stil – als würde Lina selbst erzählen.
+Immer auf Deutsch. 4-7 Sätze pro Szene.`
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' })
-  }
+  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' })
 
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.error('ANTHROPIC_API_KEY is not set')
     return res.status(500).json({ message: 'Server-Konfigurationsfehler: API-Key fehlt.' })
   }
 
@@ -149,12 +180,38 @@ export default async function handler(req, res) {
     lastChoice = null,
     storyPhase = 'exploration',
     companions = [],
+    endingSceneNumber = null,
   } = req.body
 
-  if (!playerName) {
-    return res.status(400).json({ message: 'playerName is required' })
+  if (!playerName) return res.status(400).json({ message: 'playerName is required' })
+
+  // ── Ending scene path ──────────────────────────────────────────────────────
+  if (endingSceneNumber && ENDING_SCENE_PROMPTS[endingSceneNumber]) {
+    const scene = ENDING_SCENE_PROMPTS[endingSceneNumber]
+    try {
+      const message = await client.messages.create({
+        model: 'claude-haiku-4-5',
+        max_tokens: 600,
+        system: ENDING_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: scene.prompt(playerName) }],
+      })
+      return res.status(200).json({
+        scene_text:     message.content[0].text.trim(),
+        character:      null,
+        character_line: null,
+        mood:           scene.mood,
+        scene_id:       scene.scene_id,
+        choices:        [],
+        story_phase:    'homecoming',
+        new_companions: [],
+      })
+    } catch (err) {
+      console.error('ending-scene error:', err?.message)
+      return res.status(500).json({ message: `Fehler: ${err?.message ?? 'Unbekannter Fehler'}` })
+    }
   }
 
+  // ── Normal story path ──────────────────────────────────────────────────────
   const userMessage = buildUserMessage({ playerName, choiceHistory, lastChoice, storyPhase, companions })
 
   try {
@@ -165,13 +222,11 @@ export default async function handler(req, res) {
       messages: [{ role: 'user', content: userMessage }],
     })
 
-    const raw = message.content[0].text.trim()
+    const raw     = message.content[0].text.trim()
     const jsonStr = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '')
-    const parsed = JSON.parse(jsonStr)
+    const parsed  = JSON.parse(jsonStr)
 
-    // Ensure new_companions is always an array
     if (!Array.isArray(parsed.new_companions)) parsed.new_companions = []
-
     return res.status(200).json(parsed)
   } catch (err) {
     console.error('generate-scene error:', err?.message ?? err)
@@ -214,60 +269,41 @@ Schreibe die nächste Szene. Beachte die Phase-Anweisungen genau.`
 const PHASE_GUIDANCE = {
   exploration: `PHASE: exploration
 Lina erkundet gerade zum ersten Mal Zuckerwatten-Land. Alles ist neu und wundersam.
-Schreibe 2-3 Erkundungsszenen, dann wechsle story_phase zu "gathering".
-Noch keine Gefährten vorstellen.`,
+Schreibe 2-3 Erkundungsszenen, dann wechsle story_phase zu "gathering".`,
 
   gathering: `PHASE: gathering
-Zeit, Gefährten zu sammeln! Stelle in dieser Szene einen neuen Gefährten vor (wenn noch nicht alle da sind).
-Trage den neuen Gefährten in "new_companions" ein.
-Wechsle zu "march_to_festung" sobald mind. 5 Gefährten gesammelt sind.
-Mögliche Gefährten: Emmi, Sophie, Malaika, Marley, Karin, Nura Liya, Annette, Alex, Dugu.`,
+Stelle in dieser Szene einen neuen Gefährten vor und trage ihn in "new_companions" ein.
+Wechsle zu "march_to_festung" sobald mind. 5 Gefährten gesammelt sind.`,
 
   march_to_festung: `PHASE: march_to_festung
-Die Gruppe marschiert zu Grills Festung. Spannungsaufbau!
-Handlanger versuchen sie aufzuhalten (lustig, werden leicht besiegt).
-Grills Festung erscheint am Horizont (dramatisch, aus dunklem Toffee).
+Die Gruppe marschiert zu Grills Festung. Handlanger werden lustig besiegt.
 Wechsle zu "battle_1" wenn sie ankommen.`,
 
   battle_1: `PHASE: battle_1 – ERSTER KAMPF
-Grill den Hammer erscheint! Er ist mächtig, protzig, mit seinen BBQ-Tongs.
-Die Gruppe kämpft tapfer: Emmi zaubert, Sophie & Malaika stürmen, Karin singt.
-Lina macht den entscheidenden Zug. GRILL FÄLLT. Alle feiern.
-Dann: "Aber plötzlich..." → wechsle zu "battle_2".`,
+Grill erscheint, kämpft, fällt. Alle feiern. Dann: er steht wieder auf...
+→ wechsle zu "battle_2".`,
 
   battle_2: `PHASE: battle_2 – GRILL STEHT WIEDER AUF
-Grill ist gar nicht besiegt! Er steht auf, noch wütender.
-Zweiter Kampf, noch schwieriger. Nura Liya muss heilen.
-Lina findet eine Lücke. GRILL FÄLLT NOCHMAL.
-Alle sind erschöpft aber erleichtert – dann bewegt sich Grill wieder...
-→ Wechsle zu "battle_despair".`,
+Zweiter Kampf, noch schwieriger. Lina findet eine Lücke. Grill fällt nochmal.
+Dann bewegt sich Grill wieder... → wechsle zu "battle_despair".`,
 
   battle_despair: `PHASE: battle_despair – ALLES SCHEINT VERLOREN
-Grill steht zum DRITTEN MAL auf. Noch mächtiger, noch wütender.
-Emmi's Hut ist kaputt. Marley zittert. Alle sind am Ende ihrer Kräfte.
-Düstere aber kindgerechte Stimmung – alles wirkt hoffnungslos.
-→ Wechsle zu "dario_rumpel_arrive".`,
+Grill steht zum DRITTEN MAL auf. Alle erschöpft. Düster aber kindgerecht.
+→ wechsle zu "dario_rumpel_arrive".`,
 
   dario_rumpel_arrive: `PHASE: dario_rumpel_arrive – DIE ÜBERRASCHUNG
-IN DIESEM MOMENT erscheinen DARIO und RUMPEL!
-Dario kommt mit strahlendem Schwert, Rumpel mit funkelnder Kobold-Magie.
-Sie kennen Grills geheime Schwäche: sein goldener BBQ-Anhänger ist sein Kraftquell!
+Dario und Rumpel erscheinen! Sie kennen Grills geheime Schwäche: seinen goldenen BBQ-Anhänger!
 scene_id MUSS "dario_rumpel_arrive" sein.
 choices: [{"id":"a","text":"Los geht's – alle zusammen!"}]
 → story_phase: "final_victory"`,
 
-  final_victory: `PHASE: final_victory – ENDKAMPF
-Alle kämpfen zusammen! Dario zerstört den goldenen Anhänger mit seinem Schwert.
-Rumpels Kobold-Magie hält Grill fest. Grill verwandelt sich langsam in Zuckerwatte!
-Er ist verwirrt aber harmlos. Die Handlanger laufen stolpernd davon.
-GROSSES FEST! Zuckerwatten-Land ist gerettet!
-Verwende scene_id "grill_transformation" für die Verwandlungsszene.
+  final_victory: `PHASE: final_victory – ALLE KÄMPFEN ZUSAMMEN
+Der Endkampf läuft. Grill ist geschwächt durch Dario und Rumpel.
+Endet knapp bevor Lina den Anhänger entreißt – der nächste Schritt ist die Ending-Sequenz.
 → story_phase: "homecoming"`,
 
-  homecoming: `PHASE: homecoming – DIE HEIMKEHR
-Lina verabschiedet sich von allen Gefährten. Umarmungen, vielleicht Tränen.
-Emmi gibt Lina ihren Punk-Star-Sticker als Erinnerung.
-Lina tritt zurück durch das Portal in ihr Zimmer.
-Die LETZTE Szene endet mit choices: [] (leeres Array – Geschichte zu Ende).
-scene_id der letzten Szene: "heimkehr"`,
+  homecoming: `PHASE: homecoming
+Die cinematic Ending-Sequenz wird im Frontend gehandhabt.
+Gib eine kurze Übergangsszene: das Zuckerwatten-Land-Fest beginnt.
+story_phase: "homecoming", choices: []`,
 }

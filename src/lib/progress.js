@@ -11,7 +11,7 @@ function getOrCreateSessionToken() {
   return token
 }
 
-export async function saveProgress({ playerName, sceneId, choiceHistory, storyPhase = 'exploration', companions = [] }) {
+export async function saveProgress({ playerName, sceneId, choiceHistory, storyPhase = 'exploration', companions = [], completed = false }) {
   const sessionToken = getOrCreateSessionToken()
 
   const { error } = await supabase
@@ -23,6 +23,7 @@ export async function saveProgress({ playerName, sceneId, choiceHistory, storyPh
         choice_history:   choiceHistory,
         story_phase:      storyPhase,
         companions:       companions,
+        completed:        completed,
         session_token:    sessionToken,
       },
       { onConflict: 'session_token' }

@@ -5,7 +5,7 @@ import ChoiceButtons from '../components/story/ChoiceButtons'
 import TornEdge from '../components/scrapbook/TornEdge'
 import Toast from '../components/ui/Toast'
 import FullScreenMoment from '../components/illustrations/FullScreenMoment'
-import Ending from './Ending'
+import EndingSequence from './EndingSequence'
 import { saveProgress } from '../lib/progress'
 import { generateScene } from '../lib/claude'
 
@@ -41,7 +41,7 @@ export default function Game() {
   const [activeMoment, setActiveMoment] = useState(null)
   const [storyPhase, setStoryPhase]     = useState(savedPhase)
   const [companions, setCompanions]     = useState(savedCompanions)
-  const [gameEnded, setGameEnded]       = useState(false)
+  const [showEnding, setShowEnding]     = useState(savedPhase === 'homecoming')
   const [newCompanionToast, setNewCompanionToast] = useState(null)
 
   // Load initial scene on mount
@@ -70,6 +70,10 @@ export default function Game() {
       // Update story phase if changed
       if (data.story_phase && data.story_phase !== phase) {
         setStoryPhase(data.story_phase)
+        // Homecoming phase hands off to the cinematic EndingSequence
+        if (data.story_phase === 'homecoming') {
+          setShowEnding(true)
+        }
       }
 
       // Merge newly joined companions
@@ -84,10 +88,9 @@ export default function Game() {
       // Check for full-screen moment
       setActiveMoment(data.scene_id ?? null)
 
-      // Check for story ending (empty choices array)
-      if (Array.isArray(data.choices) && data.choices.length === 0) {
-        // Small delay so player reads the final scene text first
-        setTimeout(() => setGameEnded(true), 3000)
+      // Choices: [] with homecoming = hand off to ending sequence
+      if (Array.isArray(data.choices) && data.choices.length === 0 && data.story_phase === 'homecoming') {
+        setShowEnding(true)
       }
 
       // Scroll to top
@@ -128,10 +131,10 @@ export default function Game() {
     if (!state?.playerName) navigate('/', { replace: true })
   }, [state, navigate])
 
-  // Show ending screen
-  if (gameEnded) {
+  // Hand off to cinematic ending sequence
+  if (showEnding) {
     return (
-      <Ending
+      <EndingSequence
         playerName={playerName}
         companions={companions}
         choiceCount={choiceHistory.length}
