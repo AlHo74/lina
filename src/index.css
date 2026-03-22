@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  /* Cotton candy palette */
+  --color-candy-pink: #FFB3D9;
+  --color-candy-blue: #B3E5FF;
+  --color-candy-purple: #D4B3FF;
+  --color-candy-yellow: #FFF4B3;
+  --color-candy-green: #B3FFD9;
+  --color-candy-peach: #FFD4B3;
+
+  /* Scrapbook / diary feel */
+  --color-paper: #FFFDF5;
+  --color-paper-dark: #F5F0E8;
+  --color-ink: #2D1B4E;
+  --color-ink-light: #5C4A7A;
+  --color-stamp-red: #C0392B;
+  --color-stamp-blue: #2980B9;
+
+  /* Fonts */
+  --font-display: 'Fredoka One', 'Comic Sans MS', cursive;
+  --font-handwriting: 'Caveat', 'Patrick Hand', cursive;
+  --font-body: 'Nunito', system-ui, sans-serif;
+
+  /* Border radius */
+  --radius-scrapbook: 2px;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100svh;
+}
