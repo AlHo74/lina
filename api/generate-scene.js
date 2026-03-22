@@ -47,6 +47,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
+  // Guard: make sure the API key is actually present
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('ANTHROPIC_API_KEY is not set')
+    return res.status(500).json({ message: 'Server-Konfigurationsfehler: API-Key fehlt.' })
+  }
+
   const { playerName, choiceHistory = [], lastChoice = null } = req.body
 
   if (!playerName) {
@@ -57,7 +63,7 @@ export default async function handler(req, res) {
 
   try {
     const message = await client.messages.create({
-      model: 'claude-opus-4-5',
+      model: 'claude-3-5-sonnet-20241022',
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userMessage }],
@@ -71,8 +77,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json(parsed)
   } catch (err) {
-    console.error('generate-scene error:', err)
-    return res.status(500).json({ message: 'Fehler beim Generieren der Szene.' })
+    console.error('generate-scene error:', err?.message ?? err)
+    const detail = err?.message ?? 'Unbekannter Fehler'
+    return res.status(500).json({ message: `Fehler beim Generieren der Szene: ${detail}` })
   }
 }
 

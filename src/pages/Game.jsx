@@ -52,8 +52,8 @@ export default function Game() {
       // Scroll to top of scene
       setTimeout(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 50)
     } catch (err) {
-      console.error(err)
-      setError('Hoppla! Die Geschichte hat sich kurz verschluckt. Versuch es nochmal!')
+      console.error('fetchScene error:', err)
+      setError(`Hoppla! ${err.message ?? 'Die Geschichte hat sich kurz verschluckt.'} – Versuch es nochmal!`)
     } finally {
       setLoading(false)
     }
