@@ -8,56 +8,56 @@ const ENDING_SCENE_PROMPTS = {
     title: 'Der entscheidende Moment',
     mood: 'exciting',
     scene_id: 'ending_decisive',
-    prompt: (name) => `Schreibe die entscheidende finale Szene für ${name}.
+    prompt: () => `Schreibe die entscheidende finale Szene.
 Dario hält Grill den Hammer mit seinem leuchtenden Schwert in Schach.
 Rumpels Kobold-Magie spinnt goldene Fäden um Grill, die ihn verlangsamen.
-${name} sieht die Chance: Grills goldener BBQ-Anhänger – seine Schwachstelle – glänzt in der Sonne.
+Lina sieht die Chance: Grills goldener BBQ-Anhänger – seine Schwachstelle – glänzt in der Sonne.
 Sie rennt, springt, reißt den Anhänger herunter. Ein grelles Licht blendet alle.
 Dann: Stille. Nur das leise Knistern von Zuckerwatte in der Luft.
-Schreibe dies cinematisch und spannend, 4-6 Sätze, Tagebuch-Stil von ${name}.
+Schreibe dies cinematisch und spannend, 4-6 Sätze, Tagebuch-Stil von Lina.
 Keine Entscheidungen. Mood: exciting. Kein JSON, nur Text.`,
   },
   2: {
     title: 'Grill den Hammer wird zu Zuckerwatte',
     mood: 'funny',
     scene_id: 'grill_transformation',
-    prompt: (name) => `Grill den Hammer verwandelt sich langsam in Zuckerwatte – von den Füßen aufwärts!
+    prompt: () => `Grill den Hammer verwandelt sich langsam in Zuckerwatte – von den Füßen aufwärts!
 Zuerst werden seine Schuhe rosa und flauschig. Dann seine Beine. Er starrt ungläubig runter.
 Er ist zuerst wütend: "Das kann nicht sein! ICH BIN GRILL DEN HAMMER!"
 Dann verwirrt: er riecht an sich selbst... nach Erdbeere?
 Dann irgendwie... damit einverstanden: "Okay. Okay. Das ist eigentlich... recht angenehm."
 Sein allerletzter Satz ist ein lächerlicher BBQ-Rap-Reim (kurz, dumm, lustig).
 Dann: Seine Handlanger starren ihn an. Einer zuckt mit den Schultern. Und beißt ein Stück von seinem ehemaligen Chef ab.
-Schreibe warm, witzig, kindgerecht. 5-7 Sätze, Tagebuch-Stil von ${name}. Kein JSON, nur Text.`,
+Schreibe warm, witzig, kindgerecht. 5-7 Sätze, Tagebuch-Stil von Lina. Kein JSON, nur Text.`,
   },
   3: {
     title: 'Das große Fest',
     mood: 'happy',
     scene_id: 'das_grosse_fest',
-    prompt: (name) => `Das große Fest in Zuckerwatten-Land! Alle feiern!
+    prompt: () => `Das große Fest in Zuckerwatten-Land! Alle feiern!
 Zeige jeden dieser Momente kurz aber lebendig:
 - Sophie und Malaika stehen zusammen und planen lautstark ihr nächstes chaotisches Abenteuer
 - Marley rennt bellend im Kreis – pure, grenzenlose Hundefreude
 - Dugu schwebt still und zufrieden über allem und gibt ab und zu ein leises "Miau" von sich
 - Alex will bei der Riesentorte helfen, tritt aber gegen das Tablett – die Torte fällt in hohem Bogen. Alle lachen statt böse zu sein.
 - Karin stimmt ein Siegeslied an. Beschreibe wie es klingt und was es mit den Leuten macht, ohne es auszuschreiben.
-- Annette kommt zu ${name}, sagt nichts, gibt ihr nur einen kurzen wissenden Blick und nickt.
-- Nura Liya drückt ${name} sanft eine kleine, warm leuchtende Kugel in die Hand: "Die Leuchtkugel. Für deinen Weg."
+- Annette kommt zu Lina, sagt nichts, gibt ihr nur einen kurzen wissenden Blick und nickt.
+- Nura Liya drückt Lina sanft eine kleine, warm leuchtende Kugel in die Hand: "Die Leuchtkugel. Für deinen Weg."
 - Dario und Rumpel winken und verschwinden langsam, als würden sie in die Luft aufgehen, zurück in ihre Welt.
-Schreibe warm, feierlich und voll. Tagebuch-Stil von ${name}. Kein JSON, nur Text.`,
+Schreibe warm, feierlich und voll. Tagebuch-Stil von Lina. Kein JSON, nur Text.`,
   },
   4: {
     title: 'Emmi und Lina',
     mood: 'happy',
     scene_id: 'emmi_und_lina',
-    prompt: (name) => `Ein stiller Moment, nur Emmi und ${name}. Alle anderen sind etwas weiter weg.
+    prompt: () => `Ein stiller Moment, nur Emmi und Lina. Alle anderen sind etwas weiter weg.
 Emmi ist nach außen hin cool – Hände in den Taschen, schaut zur Seite.
 Aber man spürt, dass sie emotional ist. Sie kämpft dagegen an.
-Sie gibt ${name} den Emmi-Sticker: einen kleinen silbernen Punk-Stern.
+Sie gibt Lina den Emmi-Sticker: einen kleinen silbernen Punk-Stern.
 Kurze, knappe Dialoge – Emmi hält keine langen Reden. Maximal 2-3 kurze Sätze von ihr.
 Der letzte Satz der Szene: Emmi macht einen Kickflip auf ihrem Skateboard und zeigt mit dem Finger auf das Portal:
-"Los, ${name}. Du schaffst das."
-Schreibe emotional aber nicht kitschig. Tagebuch-Stil von ${name}. Kein JSON, nur Text.`,
+"Los, Lina. Du schaffst das."
+Schreibe emotional aber nicht kitschig. Tagebuch-Stil von Lina. Kein JSON, nur Text.`,
   },
   5: {
     title: 'Nach Hause',
@@ -84,7 +84,8 @@ Zuckerwatten-Land ist eine magische Welt, in der alles aus Zuckerwatte besteht �
 ═══ TON ═══
 - Warm, niedlich, magisch – gelegentlich leicht gruselig (kindgerecht für 7-Jährige)
 - Kurze, lebendige Sätze im Tagebuch-Stil, als würde Lina selbst erzählen
-- Immer auf Deutsch. Nutze den Spielernamen natürlich im Text.
+- Immer auf Deutsch.
+- WICHTIG: Die Heldin heißt IMMER "Lina" – niemals der Spielername. Der Spielername wird nur zum Speichern verwendet und darf NICHT im Erzähltext erscheinen.
 
 ═══ CHARAKTERE ═══
 - Lina: neugieriges, mutiges Mädchen aus der echten Welt
@@ -249,7 +250,7 @@ ${companionList}
 Dies ist der Beginn des Abenteuers.
 ${phaseGuidance}
 
-Schreibe die erste Szene: ${playerName} entdeckt das leuchtende Portal in ihrem Zimmer.`
+Schreibe die erste Szene: Lina entdeckt das leuchtende Portal in ihrem Zimmer.`
   }
 
   const historyText = choiceHistory.map((c, i) => `  ${i + 1}. ${c}`).join('\n')
