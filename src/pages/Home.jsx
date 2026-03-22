@@ -147,7 +147,7 @@ export default function Home() {
           </div>
 
           {/* Buttons */}
-          <div className="w-full flex flex-col gap-3 mt-1" style={{ paddingLeft: '20px' }}>
+          <div className="w-full flex flex-col gap-3 mt-1" style={{ paddingLeft: '44px' }}>
             <GameButton
               onClick={handleNewGame}
               color="#FF6DB6"
@@ -158,25 +158,44 @@ export default function Home() {
               Neues Abenteuer
             </GameButton>
 
-            <GameButton
-              onClick={handleContinue}
-              color="#9B59D0"
-              shadow="#6B2D9A"
-              textColor="white"
-              emoji={checking ? '⏳' : '📖'}
-              disabled={!saveExists && !checking}
-              dimmed={!saveExists && !checking}
-            >
-              {checking ? 'Suche...' : 'Weiterspielen'}
-            </GameButton>
+            {/* Continue button — only rendered once name is entered */}
+            {playerName.trim().length > 0 && (
+              <div className="animate-fade-in">
+                <GameButton
+                  onClick={handleContinue}
+                  color={saveExists ? '#2ECC71' : '#9B59D0'}
+                  shadow={saveExists ? '#1A8A49' : '#6B2D9A'}
+                  textColor="white"
+                  emoji={checking ? '⏳' : saveExists ? '📖' : '📖'}
+                  disabled={!saveExists && !checking}
+                  dimmed={!saveExists && !checking}
+                >
+                  {checking
+                    ? 'Suche Spielstand...'
+                    : saveExists
+                      ? `Weiterlesen ✓`
+                      : 'Weiterspielen'}
+                </GameButton>
+              </div>
+            )}
           </div>
 
-          {/* Save hint */}
+          {/* Save hint badge */}
           {saveExists && !checking && (
-            <p className="text-center text-sm animate-fade-in opacity-60"
-              style={{ fontFamily: 'var(--font-handwriting)', color: '#2D1B4E' }}>
-              ✓ Spielstand gefunden für <strong>{playerName}</strong>!
-            </p>
+            <div
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full animate-pop-in"
+              style={{
+                background: 'rgba(46,204,113,0.15)',
+                border: '1.5px solid rgba(46,204,113,0.5)',
+                marginLeft: '44px',
+                alignSelf: 'flex-start',
+              }}
+            >
+              <span style={{ fontSize: '0.8rem' }}>✅</span>
+              <span style={{ fontFamily: 'var(--font-handwriting)', color: '#1A8A49', fontSize: '0.85rem' }}>
+                Spielstand für <strong>{playerName}</strong> gefunden!
+              </span>
+            </div>
           )}
 
           {/* Bottom doodle */}

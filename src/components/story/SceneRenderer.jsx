@@ -46,23 +46,25 @@ export default function SceneRenderer({ scene, isNew }) {
 
       {/* Diary narrative block */}
       <div
-        className="diary-bg relative px-6 pt-6 pb-4"
-        style={{ minHeight: '160px' }}
+        className="diary-bg relative px-6 pt-6 pb-4 animate-scene-text-in"
+        style={{ minHeight: '160px', animationDelay: '0.12s' }}
       >
         {/* Diary location stamp */}
         <div
-          className="absolute top-3 right-4 text-xs rotate-3 opacity-40 border border-dashed border-ink-light px-2 py-1 rounded"
+          className="absolute top-3 right-4 text-xs rotate-3 opacity-35 border border-dashed border-ink-light px-2 py-1 rounded"
           style={{ fontFamily: 'var(--font-handwriting)', color: '#2D1B4E' }}
         >
-          Zuckerwatten-Land
+          📍 {formatLocation(scene.scene_id)}
         </div>
 
         {/* Narrative text */}
         <p
-          className="relative z-10 text-lg leading-relaxed"
+          className="relative z-10"
           style={{
             fontFamily: 'var(--font-handwriting)',
             color: '#2D1B4E',
+            fontSize: '1.15rem',
+            lineHeight: 1.75,
             paddingLeft: '44px',
           }}
         >
@@ -81,11 +83,28 @@ export default function SceneRenderer({ scene, isNew }) {
   )
 }
 
+// Turn scene_id like "lollipop_wald_erkunden" → "Lollipop-Wald"
+function formatLocation(sceneId) {
+  if (!sceneId) return 'Zuckerwatten-Land'
+  const LOCATION_NAMES = {
+    lollipop: 'Lollipop-Wald',
+    strand: 'Zuckerwatte-Strand',
+    hoehle: 'Kandiszucker-Höhle',
+    festung: 'Grills Festung',
+    portal: 'Das Portal',
+  }
+  const lower = sceneId.toLowerCase()
+  for (const [key, name] of Object.entries(LOCATION_NAMES)) {
+    if (lower.includes(key)) return name
+  }
+  return 'Zuckerwatten-Land'
+}
+
 function CharacterBubble({ name, line }) {
   return (
     <div
-      className="relative mt-5 mx-2 animate-fade-in-up"
-      style={{ animationDelay: '0.2s' }}
+      className="relative mt-5 mx-2 animate-scene-text-in"
+      style={{ animationDelay: '0.28s' }}
     >
       {/* Portrait + name tag row */}
       <div className="flex items-end gap-2 ml-2 mb-1">

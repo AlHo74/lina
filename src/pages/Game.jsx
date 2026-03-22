@@ -168,14 +168,19 @@ export default function Game() {
           🍬 Zuckerwatten-Land
         </h2>
 
-        {/* Phase indicator */}
+        {/* Phase indicator pill */}
         <div
-          className="text-xs flex items-center gap-1 opacity-80"
-          style={{ color: '#D4B3FF', fontFamily: 'var(--font-body)' }}
+          className="flex items-center gap-1 px-2 py-1 rounded-full text-xs"
+          style={{
+            background: 'rgba(212,179,255,0.15)',
+            border: '1px solid rgba(212,179,255,0.3)',
+            color: '#D4B3FF',
+            fontFamily: 'var(--font-body)',
+          }}
         >
           <span>{phaseInfo.emoji}</span>
           <span className="hidden sm:inline">{phaseInfo.label}</span>
-          <span className="opacity-50 ml-1">#{choiceHistory.length}</span>
+          <span style={{ opacity: 0.45 }}>#{choiceHistory.length}</span>
         </div>
       </header>
 
@@ -215,12 +220,20 @@ export default function Game() {
 
         {/* Loading state */}
         {loading && (
-          <div className="diary-bg flex flex-col items-center justify-center gap-3 py-16">
-            <span className="text-4xl" style={{ animation: 'portal-spin 1s linear infinite', display: 'inline-block' }}>
-              🌀
-            </span>
-            <p style={{ fontFamily: 'var(--font-handwriting)', color: '#6B5A8A', fontSize: '1.1rem' }}>
-              Die Geschichte lädt...
+          <div className="diary-bg flex flex-col items-center justify-center gap-4 py-16">
+            <div className="flex items-end gap-3">
+              {['🍭','🍬','🌟'].map((icon, i) => (
+                <span key={i} className="text-3xl select-none"
+                  style={{
+                    display: 'inline-block',
+                    animation: `float-up-down ${1.2 + i * 0.15}s ease-in-out ${i * 0.2}s infinite`,
+                  }}>
+                  {icon}
+                </span>
+              ))}
+            </div>
+            <p style={{ fontFamily: 'var(--font-handwriting)', color: '#6B5A8A', fontSize: '1.15rem' }}>
+              Die Geschichte kommt...
             </p>
           </div>
         )}

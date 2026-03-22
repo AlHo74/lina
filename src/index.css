@@ -126,14 +126,40 @@ body {
   50%       { transform: translateY(-6px); }
 }
 
+@keyframes float-up-down {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-10px) rotate(-5deg); }
+  66%       { transform: translateY(-5px) rotate(4deg); }
+}
+
+@keyframes scene-text-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes choice-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pop-in {
+  0%   { opacity: 0; transform: scale(0.7); }
+  70%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* ─── Utility classes ────────────────────────────────────── */
-.animate-fade-in-up  { animation: fade-in-up 0.5s ease both; }
-.animate-fade-in     { animation: fade-in 0.4s ease both; }
-.animate-sparkle     { animation: sparkle 2s ease-in-out infinite; }
-.animate-float       { animation: float 3s ease-in-out infinite; }
-.animate-toast-in    { animation: toast-in  0.3s ease both; }
-.animate-toast-out   { animation: toast-out 0.3s ease both; }
-.animate-btn-tap     { animation: btn-tap 0.2s ease both; }
+.animate-fade-in-up     { animation: fade-in-up 0.5s ease both; }
+.animate-fade-in        { animation: fade-in 0.4s ease both; }
+.animate-sparkle        { animation: sparkle 2s ease-in-out infinite; }
+.animate-float          { animation: float 3s ease-in-out infinite; }
+.animate-float-up-down  { animation: float-up-down 3s ease-in-out infinite; }
+.animate-toast-in       { animation: toast-in  0.3s ease both; }
+.animate-toast-out      { animation: toast-out 0.3s ease both; }
+.animate-btn-tap        { animation: btn-tap 0.2s ease both; }
+.animate-scene-text-in  { animation: scene-text-in 0.45s ease both; }
+.animate-choice-in      { animation: choice-in 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) both; }
+.animate-pop-in         { animation: pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
 /* ─── Torn paper edge (SVG mask via clip-path) ───────────── */
 .torn-top {
