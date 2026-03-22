@@ -1,7 +1,19 @@
-import {
-  Lina, Emmi, Sophie, Malaika, GrillDenHammer, DieHandlanger,
-  Annette, Alex, Karin, NuraLiya, Marley, Dugu, Dario, Rumpel,
-} from './portraits/index'
+import { lazy, Suspense } from 'react'
+
+const Lina          = lazy(() => import('./portraits/Lina'))
+const Emmi          = lazy(() => import('./portraits/Emmi'))
+const Sophie        = lazy(() => import('./portraits/Sophie'))
+const Malaika       = lazy(() => import('./portraits/Malaika'))
+const GrillDenHammer = lazy(() => import('./portraits/GrillDenHammer'))
+const DieHandlanger = lazy(() => import('./portraits/DieHandlanger'))
+const Annette       = lazy(() => import('./portraits/Annette'))
+const Alex          = lazy(() => import('./portraits/Alex'))
+const Karin         = lazy(() => import('./portraits/Karin'))
+const NuraLiya      = lazy(() => import('./portraits/NuraLiya'))
+const Marley        = lazy(() => import('./portraits/Marley'))
+const Dugu          = lazy(() => import('./portraits/Dugu'))
+const Dario         = lazy(() => import('./portraits/Dario'))
+const Rumpel        = lazy(() => import('./portraits/Rumpel'))
 
 const CHARACTER_MAP = {
   // Lina
@@ -114,7 +126,9 @@ export default function CharacterPortrait({ character, className, style }) {
 
     return (
       <span className={className} style={style}>
-        <PortraitComponent />
+        <Suspense fallback={<FallbackPortrait character={character} />}>
+          <PortraitComponent />
+        </Suspense>
       </span>
     )
   } catch (err) {

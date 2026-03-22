@@ -4,6 +4,7 @@ import SceneRenderer from '../components/story/SceneRenderer'
 import ChoiceButtons from '../components/story/ChoiceButtons'
 import TornEdge from '../components/scrapbook/TornEdge'
 import Toast from '../components/ui/Toast'
+import FullScreenMoment from '../components/illustrations/FullScreenMoment'
 import { saveProgress } from '../lib/progress'
 import { generateScene } from '../lib/claude'
 
@@ -22,6 +23,7 @@ export default function Game() {
   const [error, setError]               = useState(null)
   const [showToast, setShowToast]       = useState(false)
   const [isNewScene, setIsNewScene]     = useState(false)
+  const [activeMoment, setActiveMoment] = useState(null)
 
   // Load initial scene on mount
   useEffect(() => {
@@ -48,6 +50,8 @@ export default function Game() {
 
       setScene(data)
       setIsNewScene(true)
+      // Trigger full-screen moment if this scene_id matches one
+      setActiveMoment(data.scene_id ?? null)
 
       // Scroll to top of scene
       setTimeout(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 50)
@@ -177,6 +181,14 @@ export default function Game() {
         visible={showToast}
         onDone={() => setShowToast(false)}
       />
+
+      {/* Full-screen key moment overlay */}
+      {activeMoment && (
+        <FullScreenMoment
+          sceneId={activeMoment}
+          onDismiss={() => setActiveMoment(null)}
+        />
+      )}
     </div>
   )
 }

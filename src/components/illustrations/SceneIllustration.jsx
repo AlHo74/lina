@@ -39,7 +39,29 @@ const LOCATION_MAP = {
 
 export default function SceneIllustration({ location, className, style }) {
   const normalized = (location || '').toLowerCase().trim()
-  const SceneComponent = LOCATION_MAP[normalized] || LollipopWald
+
+  // 1. Try exact match first
+  let SceneComponent = LOCATION_MAP[normalized]
+
+  // 2. Fall back to substring match (handles scene_ids like "lollipop_wald_erkunden")
+  if (!SceneComponent) {
+    if (normalized.includes('strand') || normalized.includes('beach')) {
+      SceneComponent = ZuckerwatteStrand
+    } else if (
+      normalized.includes('hoehle') || normalized.includes('höhle') ||
+      normalized.includes('cave') || normalized.includes('kandis')
+    ) {
+      SceneComponent = KandiszuckerHoehle
+    } else if (
+      normalized.includes('festung') || normalized.includes('grill') ||
+      normalized.includes('fortress') || normalized.includes('castle')
+    ) {
+      SceneComponent = GrillsFestung
+    } else {
+      // Default: Lollipop Wald (most early scenes happen here)
+      SceneComponent = LollipopWald
+    }
+  }
 
   return (
     <div className={className} style={style}>

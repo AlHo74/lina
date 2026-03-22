@@ -1,11 +1,13 @@
 import TornEdge from '../scrapbook/TornEdge'
+import SceneIllustration from '../illustrations/SceneIllustration'
+import CharacterPortrait from '../illustrations/CharacterPortrait'
 
 const MOOD_CONFIG = {
-  happy:    { emoji: '🌈', label: 'Fröhlich',   bg: '#FFF4B3', border: '#FFD700' },
-  spooky:   { emoji: '👻', label: 'Gruselig',   bg: '#E8D5FF', border: '#9B59D0' },
-  exciting: { emoji: '⚡', label: 'Aufregend',  bg: '#B3E5FF', border: '#4AABDB' },
-  funny:    { emoji: '😄', label: 'Lustig',     bg: '#B3FFD9', border: '#2ECC71' },
-  tense:    { emoji: '😰', label: 'Spannend',   bg: '#FFD4B3', border: '#E67E22' },
+  happy:    { emoji: '🌈', label: 'Fröhlich',   color: '#FFD700' },
+  spooky:   { emoji: '👻', label: 'Gruselig',   color: '#9B59D0' },
+  exciting: { emoji: '⚡', label: 'Aufregend',  color: '#4AABDB' },
+  funny:    { emoji: '😄', label: 'Lustig',     color: '#2ECC71' },
+  tense:    { emoji: '😰', label: 'Spannend',   color: '#E67E22' },
 }
 
 export default function SceneRenderer({ scene, isNew }) {
@@ -19,33 +21,27 @@ export default function SceneRenderer({ scene, isNew }) {
       className={isNew ? 'animate-fade-in-up' : ''}
       style={{ animationDelay: '0.05s' }}
     >
-      {/* Mood illustration strip */}
-      <div
-        className="relative flex items-center justify-center gap-3 py-4 px-6 mb-0"
-        style={{ background: mood.bg, borderBottom: `2px dashed ${mood.border}` }}
-      >
-        {/* Decorative doodle dots */}
-        <span className="absolute left-3 top-2 text-xs opacity-30">✦</span>
-        <span className="absolute right-4 bottom-1 text-xs opacity-30">✦</span>
+      {/* Scene illustration panel — full width, ~200px tall */}
+      <div className="relative w-full overflow-hidden" style={{ maxHeight: '200px' }}>
+        <SceneIllustration location={scene.scene_id} style={{ width: '100%', display: 'block' }} />
 
-        <span
-          className="text-5xl animate-float"
-          style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))' }}
-          role="img"
-          aria-label={mood.label}
+        {/* Mood badge overlaid on the illustration */}
+        <div
+          className="absolute bottom-2 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold"
+          style={{
+            background: 'rgba(45,27,78,0.75)',
+            color: '#FFF4B3',
+            fontFamily: 'var(--font-body)',
+            border: `1.5px solid ${mood.color}`,
+            backdropFilter: 'blur(4px)',
+          }}
         >
-          {mood.emoji}
-        </span>
-
-        <span
-          className="text-xs font-bold uppercase tracking-widest opacity-60"
-          style={{ fontFamily: 'var(--font-body)', color: '#2D1B4E' }}
-        >
+          <span role="img" aria-label={mood.label}>{mood.emoji}</span>
           {mood.label}
-        </span>
+        </div>
       </div>
 
-      {/* Torn edge between mood bar and diary text */}
+      {/* Torn edge between illustration and diary text */}
       <TornEdge position="bottom" color="#FFFDF5" />
 
       {/* Diary narrative block */}
@@ -53,7 +49,7 @@ export default function SceneRenderer({ scene, isNew }) {
         className="diary-bg relative px-6 pt-6 pb-4"
         style={{ minHeight: '160px' }}
       >
-        {/* Diary date-stamp doodle */}
+        {/* Diary location stamp */}
         <div
           className="absolute top-3 right-4 text-xs rotate-3 opacity-40 border border-dashed border-ink-light px-2 py-1 rounded"
           style={{ fontFamily: 'var(--font-handwriting)', color: '#2D1B4E' }}
@@ -67,7 +63,7 @@ export default function SceneRenderer({ scene, isNew }) {
           style={{
             fontFamily: 'var(--font-handwriting)',
             color: '#2D1B4E',
-            paddingLeft: '44px', // align with diary margin line
+            paddingLeft: '44px',
           }}
         >
           {scene.scene_text}
@@ -91,17 +87,31 @@ function CharacterBubble({ name, line }) {
       className="relative mt-5 mx-2 animate-fade-in-up"
       style={{ animationDelay: '0.2s' }}
     >
-      {/* Name tag — like a sticky label */}
-      <div
-        className="inline-block px-3 py-1 rounded-t-lg rounded-br-lg mb-0 ml-10 text-sm font-bold shadow-sm"
-        style={{
-          background: '#D4B3FF',
-          color: '#2D1B4E',
-          fontFamily: 'var(--font-body)',
-          transform: 'rotate(-1deg)',
-        }}
-      >
-        {name}
+      {/* Portrait + name tag row */}
+      <div className="flex items-end gap-2 ml-2 mb-1">
+        {/* SVG portrait */}
+        <div
+          style={{
+            flexShrink: 0,
+            filter: 'drop-shadow(0 2px 6px rgba(45,27,78,0.25))',
+          }}
+        >
+          <CharacterPortrait character={name} />
+        </div>
+
+        {/* Name tag — like a sticky label */}
+        <div
+          className="inline-block px-3 py-1 rounded-t-lg rounded-br-lg text-sm font-bold shadow-sm"
+          style={{
+            background: '#D4B3FF',
+            color: '#2D1B4E',
+            fontFamily: 'var(--font-body)',
+            transform: 'rotate(-1deg)',
+            marginBottom: '4px',
+          }}
+        >
+          {name}
+        </div>
       </div>
 
       {/* Speech bubble */}
