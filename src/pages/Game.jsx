@@ -5,17 +5,32 @@ import ChoiceButtons from '../components/story/ChoiceButtons'
 import TornEdge from '../components/scrapbook/TornEdge'
 import Toast from '../components/ui/Toast'
 import FullScreenMoment from '../components/illustrations/FullScreenMoment'
+import Ending from './Ending'
 import { saveProgress } from '../lib/progress'
 import { generateScene } from '../lib/claude'
+
+const PHASE_LABELS = {
+  exploration:        { label: 'Erkundung',   emoji: '🔍' },
+  gathering:          { label: 'Gefährten',   emoji: '🫂' },
+  march_to_festung:   { label: 'Marsch',      emoji: '⚔️' },
+  battle_1:           { label: 'Kampf I',     emoji: '💥' },
+  battle_2:           { label: 'Kampf II',    emoji: '💥' },
+  battle_despair:     { label: 'Krise',       emoji: '😰' },
+  dario_rumpel_arrive:{ label: 'Rettung!',    emoji: '🌟' },
+  final_victory:      { label: 'Sieg!',       emoji: '🏆' },
+  homecoming:         { label: 'Heimkehr',    emoji: '🏠' },
+}
 
 export default function Game() {
   const { state } = useLocation()
   const navigate = useNavigate()
   const scrollRef = useRef(null)
 
-  const playerName        = state?.playerName ?? 'Lina'
-  const isNewGame         = state?.isNewGame ?? true
+  const playerName         = state?.playerName ?? 'Lina'
+  const isNewGame          = state?.isNewGame ?? true
   const savedChoiceHistory = state?.savedChoiceHistory ?? []
+  const savedPhase         = state?.savedPhase ?? 'exploration'
+  const savedCompanions    = state?.savedCompanions ?? []
 
   const [scene, setScene]               = useState(null)
   const [choiceHistory, setChoiceHistory] = useState(savedChoiceHistory)
@@ -24,19 +39,18 @@ export default function Game() {
   const [showToast, setShowToast]       = useState(false)
   const [isNewScene, setIsNewScene]     = useState(false)
   const [activeMoment, setActiveMoment] = useState(null)
+  const [storyPhase, setStoryPhase]     = useState(savedPhase)
+  const [companions, setCompanions]     = useState(savedCompanions)
+  const [gameEnded, setGameEnded]       = useState(false)
+  const [newCompanionToast, setNewCompanionToast] = useState(null)
 
   // Load initial scene on mount
   useEffect(() => {
-    if (isNewGame) {
-      fetchScene(null, [])
-    } else {
-      // Resumed: re-generate the last scene from saved history
-      fetchScene(null, savedChoiceHistory)
-    }
+    fetchScene(null, savedChoiceHistory, savedPhase, savedCompanions)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const fetchScene = useCallback(async (lastChoice, history) => {
+  const fetchScene = useCallback(async (lastChoice, history, phase, currentCompanions) => {
     setLoading(true)
     setError(null)
     setIsNewScene(false)
@@ -46,14 +60,37 @@ export default function Game() {
         playerName,
         choiceHistory: history,
         lastChoice,
+        storyPhase: phase,
+        companions: currentCompanions,
       })
 
       setScene(data)
       setIsNewScene(true)
-      // Trigger full-screen moment if this scene_id matches one
+
+      // Update story phase if changed
+      if (data.story_phase && data.story_phase !== phase) {
+        setStoryPhase(data.story_phase)
+      }
+
+      // Merge newly joined companions
+      let updatedCompanions = currentCompanions
+      if (data.new_companions?.length > 0) {
+        updatedCompanions = [...new Set([...currentCompanions, ...data.new_companions])]
+        setCompanions(updatedCompanions)
+        setNewCompanionToast(data.new_companions[0]) // show first new companion
+        setTimeout(() => setNewCompanionToast(null), 3000)
+      }
+
+      // Check for full-screen moment
       setActiveMoment(data.scene_id ?? null)
 
-      // Scroll to top of scene
+      // Check for story ending (empty choices array)
+      if (Array.isArray(data.choices) && data.choices.length === 0) {
+        // Small delay so player reads the final scene text first
+        setTimeout(() => setGameEnded(true), 3000)
+      }
+
+      // Scroll to top
       setTimeout(() => scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }), 50)
     } catch (err) {
       console.error('fetchScene error:', err)
@@ -67,26 +104,42 @@ export default function Game() {
     const newHistory = [...choiceHistory, choice.text]
     setChoiceHistory(newHistory)
 
+    const nextPhase = scene?.story_phase ?? storyPhase
+
     // Save to Supabase
     try {
       await saveProgress({
         playerName,
-        sceneId: scene?.scene_id ?? 'unknown',
+        sceneId:       scene?.scene_id ?? 'unknown',
         choiceHistory: newHistory,
+        storyPhase:    nextPhase,
+        companions,
       })
       setShowToast(true)
     } catch (err) {
       console.warn('Speichern fehlgeschlagen:', err)
     }
 
-    // Fetch next scene
-    await fetchScene(choice.text, newHistory)
+    await fetchScene(choice.text, newHistory, nextPhase, companions)
   }
 
   // Guard: redirect home if navigated to directly without state
   useEffect(() => {
     if (!state?.playerName) navigate('/', { replace: true })
   }, [state, navigate])
+
+  // Show ending screen
+  if (gameEnded) {
+    return (
+      <Ending
+        playerName={playerName}
+        companions={companions}
+        choiceCount={choiceHistory.length}
+      />
+    )
+  }
+
+  const phaseInfo = PHASE_LABELS[storyPhase] ?? { label: storyPhase, emoji: '📖' }
 
   return (
     <div
@@ -112,11 +165,42 @@ export default function Game() {
           🍬 Zuckerwatten-Land
         </h2>
 
-        {/* Choice counter */}
-        <div className="text-xs opacity-60" style={{ color: '#D4B3FF', fontFamily: 'var(--font-body)' }}>
-          #{choiceHistory.length}
+        {/* Phase indicator */}
+        <div
+          className="text-xs flex items-center gap-1 opacity-80"
+          style={{ color: '#D4B3FF', fontFamily: 'var(--font-body)' }}
+        >
+          <span>{phaseInfo.emoji}</span>
+          <span className="hidden sm:inline">{phaseInfo.label}</span>
+          <span className="opacity-50 ml-1">#{choiceHistory.length}</span>
         </div>
       </header>
+
+      {/* Party roster strip — shown once companions are collected */}
+      {companions.length > 0 && (
+        <div
+          className="flex items-center gap-2 px-4 py-2 overflow-x-auto"
+          style={{
+            background: 'rgba(255,255,255,0.05)',
+            borderBottom: '1px solid rgba(212,179,255,0.2)',
+            scrollbarWidth: 'none',
+          }}
+        >
+          <span style={{ fontFamily: 'var(--font-body)', fontSize: '0.65rem', color: '#D4B3FF', whiteSpace: 'nowrap', opacity: 0.7 }}>
+            Party:
+          </span>
+          {companions.map(name => (
+            <span
+              key={name}
+              title={name}
+              className="text-lg flex-shrink-0"
+              style={{ lineHeight: 1 }}
+            >
+              {COMPANION_EMOJIS[name] ?? '👤'}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Scrollable story area */}
       <div
@@ -146,7 +230,7 @@ export default function Game() {
               {error}
             </p>
             <button
-              onClick={() => fetchScene(choiceHistory.at(-1) ?? null, choiceHistory)}
+              onClick={() => fetchScene(choiceHistory.at(-1) ?? null, choiceHistory, storyPhase, companions)}
               className="px-6 py-3 rounded-2xl font-bold text-white"
               style={{ background: '#FF6DB6', fontFamily: 'var(--font-body)', minHeight: '48px' }}
             >
@@ -162,14 +246,27 @@ export default function Game() {
 
             <TornEdge position="bottom" color="#FFFDF5" />
 
-            {/* Choices sit on the purple background */}
-            <ChoiceButtons
-              choices={scene.choices}
-              onChoice={handleChoice}
-              disabled={loading}
-            />
+            {/* Only show choices if story isn't over */}
+            {scene.choices?.length > 0 && (
+              <ChoiceButtons
+                choices={scene.choices}
+                onChoice={handleChoice}
+                disabled={loading}
+              />
+            )}
 
-            {/* Bottom breathing room */}
+            {/* "Story ending…" indicator */}
+            {scene.choices?.length === 0 && (
+              <div className="flex flex-col items-center gap-2 py-8">
+                <span className="text-4xl" style={{ animation: 'float-up 2s ease-in-out infinite, display: inline-block' }}>
+                  🍭
+                </span>
+                <p style={{ fontFamily: 'var(--font-handwriting)', color: '#D4B3FF', fontSize: '1rem' }}>
+                  Das Ende naht...
+                </p>
+              </div>
+            )}
+
             <div className="h-8" />
           </>
         )}
@@ -182,6 +279,25 @@ export default function Game() {
         onDone={() => setShowToast(false)}
       />
 
+      {/* New companion toast */}
+      {newCompanionToast && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-3 rounded-2xl shadow-lg animate-toast-in"
+          style={{
+            background: '#9B59D0',
+            color: '#FFF4B3',
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.95rem',
+            fontWeight: 'bold',
+            zIndex: 40,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <span className="text-xl">{COMPANION_EMOJIS[newCompanionToast] ?? '👤'}</span>
+          {newCompanionToast} hat sich angeschlossen!
+        </div>
+      )}
+
       {/* Full-screen key moment overlay */}
       {activeMoment && (
         <FullScreenMoment
@@ -191,4 +307,19 @@ export default function Game() {
       )}
     </div>
   )
+}
+
+// Companion emoji map (also used in Ending.jsx)
+const COMPANION_EMOJIS = {
+  'Emmi':       '🧙‍♀️',
+  'Sophie':     '👑',
+  'Malaika':    '⚔️',
+  'Marley':     '🐶',
+  'Karin':      '🎵',
+  'Nura Liya':  '✨',
+  'Annette':    '😎',
+  'Alex':       '🤪',
+  'Dugu':       '👻',
+  'Dario':      '🗡️',
+  'Rumpel':     '🧌',
 }

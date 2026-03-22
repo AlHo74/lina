@@ -11,17 +11,19 @@ function getOrCreateSessionToken() {
   return token
 }
 
-export async function saveProgress({ playerName, sceneId, choiceHistory }) {
+export async function saveProgress({ playerName, sceneId, choiceHistory, storyPhase = 'exploration', companions = [] }) {
   const sessionToken = getOrCreateSessionToken()
 
   const { error } = await supabase
     .from('player_progress')
     .upsert(
       {
-        player_name: playerName,
+        player_name:      playerName,
         current_scene_id: sceneId,
-        choice_history: choiceHistory,
-        session_token: sessionToken,
+        choice_history:   choiceHistory,
+        story_phase:      storyPhase,
+        companions:       companions,
+        session_token:    sessionToken,
       },
       { onConflict: 'session_token' }
     )

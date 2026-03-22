@@ -41,10 +41,12 @@ export default function Home() {
       if (!save) { setError('Kein Speicherstand gefunden!'); return }
       navigate('/game', {
         state: {
-          playerName: playerName.trim(),
-          isNewGame: false,
-          savedSceneId: save.current_scene_id,
+          playerName:         playerName.trim(),
+          isNewGame:          false,
+          savedSceneId:       save.current_scene_id,
           savedChoiceHistory: save.choice_history,
+          savedPhase:         save.story_phase ?? 'exploration',
+          savedCompanions:    save.companions ?? [],
         },
       })
     } catch {
