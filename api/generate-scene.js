@@ -63,14 +63,14 @@ Schreibe emotional aber nicht kitschig. Tagebuch-Stil von Lina. Kein JSON, nur T
     title: 'Nach Hause',
     mood: 'happy',
     scene_id: 'heimkehr',
-    prompt: (name) => `${name} tritt durch das leuchtende Portal zurück in ihr Zimmer.
-Alles ist genau so wie sie es verlassen hat. Ihr Bett. Ihr Schreibtisch. Die vertrauten Geräusche der echten Welt.
-Sie schaut auf ihre Hand – und da ist er: Emmis Punk-Stern-Sticker. Wirklich. Echt.
-Schreibe den letzten Tagebucheintrag von ${name}:
-Sie weiß, dass es niemand glauben würde.
-Aber sie weiß, dass es wahr war. Jede Sekunde davon.
+    prompt: () => `Ich trete durch das leuchtende Portal zurück in mein Zimmer.
+Alles ist genau so wie ich es verlassen habe. Mein Bett. Mein Schreibtisch. Die vertrauten Geräusche der echten Welt.
+Ich schaue auf meine Hand – und da ist er: Emmis Punk-Stern-Sticker. Wirklich. Echt.
+Schreibe den letzten Tagebucheintrag in der ICH-Perspektive:
+Ich weiß, dass es niemand glauben würde.
+Aber ich weiß, dass es wahr war. Jede Sekunde davon.
 Der allerletzte Satz ist offen und magisch – er deutet an, dass das Portal vielleicht eines Tages wieder erscheinen könnte.
-Poetisch, warm, befriedigend. Dies ist das Ende des Buches. Tagebuch-Stil von ${name}. Kein JSON, nur Text.`,
+Poetisch, warm, befriedigend. Dies ist das Ende des Buches. ICH-Perspektive. Kein JSON, nur Text.`,
   },
 }
 
@@ -81,11 +81,15 @@ Das Spiel heißt "Lina im Zuckerwatten-Land".
 ═══ WELT ═══
 Zuckerwatten-Land ist eine magische Welt, in der alles aus Zuckerwatte besteht – Wolken, Bäume, Häuser, Flüsse aus Marshmallow-Schaum. Lina erreicht diese Welt durch ein leuchtendes Portal in ihrem Zimmer.
 
-═══ TON ═══
-- Warm, niedlich, magisch – gelegentlich leicht gruselig (kindgerecht für 7-Jährige)
-- Kurze, lebendige Sätze im Tagebuch-Stil, als würde Lina selbst erzählen
+═══ TON & PERSPEKTIVE ═══
+- ABSOLUT ZWINGEND: Die gesamte Geschichte wird in der ICH-PERSPEKTIVE erzählt.
+  Lina ist die Erzählerin und spricht als "ich". KEIN "Lina machte X" – immer "Ich machte X".
+  Richtig: "Ich sprang durch das Portal und staunte."
+  FALSCH:  "Lina sprang durch das Portal und staunte."
+- Kurze, lebendige Sätze im Tagebuch-Stil – Lina schreibt selbst in ihr Tagebuch.
+- Warm, niedlich, magisch – gelegentlich leicht gruselig (kindgerecht für 7-Jährige).
 - Immer auf Deutsch.
-- WICHTIG: Die Heldin heißt IMMER "Lina" – niemals der Spielername. Der Spielername wird nur zum Speichern verwendet und darf NICHT im Erzähltext erscheinen.
+- WICHTIG: Der Spielername darf NICHT im Erzähltext erscheinen. Er dient nur dem Speichern.
 
 ═══ CHARAKTERE ═══
 - Lina: neugieriges, mutiges Mädchen aus der echten Welt
@@ -146,7 +150,7 @@ Wird als cinematic Sequenz im Frontend gehandhabt. Keine normalen Szenen mehr.
 
 ═══ AUSGABEFORMAT (immer als JSON, kein Markdown) ═══
 {
-  "scene_text": "3-5 Sätze Erzähltext im Tagebuchstil",
+  "scene_text": "3-5 Sätze Erzähltext – ICH-Perspektive, Lina schreibt als 'ich' in ihr Tagebuch",
   "character": "Name des sprechenden Charakters oder null",
   "character_line": "Was der Charakter sagt, oder null",
   "mood": "happy | spooky | exciting | funny | tense",
@@ -164,8 +168,11 @@ Wird als cinematic Sequenz im Frontend gehandhabt. Keine normalen Szenen mehr.
 const ENDING_SYSTEM_PROMPT = `Du bist der Erzähler eines deutschen Kinderbuchs für 7-jährige Kinder.
 Du schreibst gerade die finalen Szenen des Abenteuers "Lina im Zuckerwatten-Land".
 Dies sind cinematic Szenen ohne Spielerentscheidungen.
+ABSOLUT ZWINGEND: Schreibe AUSSCHLIESSLICH in der ICH-PERSPEKTIVE.
+Lina erzählt als "ich" – NIEMALS als "Lina" oder "sie".
+Richtig: "Ich riss den Anhänger herunter." – FALSCH: "Lina riss den Anhänger herunter."
 Schreibe emotional, warm und befriedigend.
-Tagebuch-Stil – als würde Lina selbst erzählen.
+Tagebuch-Stil – Lina schreibt selbst in ihr Tagebuch.
 Immer auf Deutsch. 4-7 Sätze pro Szene.`
 
 export default async function handler(req, res) {
@@ -250,7 +257,7 @@ ${companionList}
 Dies ist der Beginn des Abenteuers.
 ${phaseGuidance}
 
-Schreibe die erste Szene: Lina entdeckt das leuchtende Portal in ihrem Zimmer.`
+Schreibe die erste Szene: Ich (Lina) entdecke das leuchtende Portal in meinem Zimmer. ICH-Perspektive!`
   }
 
   const historyText = choiceHistory.map((c, i) => `  ${i + 1}. ${c}`).join('\n')
@@ -269,11 +276,24 @@ Schreibe die nächste Szene. Beachte die Phase-Anweisungen genau.`
 
 const PHASE_GUIDANCE = {
   exploration: `PHASE: exploration
-Lina erkundet gerade zum ersten Mal Zuckerwatten-Land. Alles ist neu und wundersam.
+Ich (Lina) erkunde gerade zum ersten Mal Zuckerwatten-Land. Alles ist neu und wundersam.
+Erzähle in der ICH-PERSPEKTIVE – "Ich staunte", "Ich berührte", "Ich rief" – niemals "Lina staunte".
 Schreibe 2-3 Erkundungsszenen, dann wechsle story_phase zu "gathering".`,
 
   gathering: `PHASE: gathering
 Stelle in dieser Szene einen neuen Gefährten vor und trage ihn in "new_companions" ein.
+Reihenfolge: Emmi → Marley → Sophie & Malaika → Karin → Nura Liya → Annette & Alex → Dugu.
+
+WENN NOCH KEIN GEFÄHRTE GESAMMELT WURDE (erste gathering-Szene = Emmi-Szene):
+  Emmi taucht auf dem Skateboard auf und begrüßt mich (Ich-Perspektive).
+  Sie erklärt mir wer Grill den Hammer ist und welche Gefahr er für Zuckerwatten-Land darstellt:
+  - Grill den Hammer ist ein mächtiger Gangster-Rapper-Bösewicht.
+  - Sein Plan: Das gesamte Zuckerwatten-Land in einen riesigen Grill zu verwandeln und alles zu verbrennen.
+  - Alle Bewohner wären obdachlos. Die magische Welt wäre für immer zerstört.
+  - Er hat bereits Teile des Landes eingenommen – sein Rauch sieht man am Horizont.
+  Emmi sagt klar: "Ohne dich schaffen wir das nicht. Du bist aus der echten Welt – das macht dich besonders."
+  character_line von Emmi soll Grill und die Gefahr direkt ansprechen.
+
 Wechsle zu "march_to_festung" sobald mind. 5 Gefährten gesammelt sind.`,
 
   march_to_festung: `PHASE: march_to_festung
